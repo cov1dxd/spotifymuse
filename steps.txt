@@ -1,0 +1,107 @@
+========================================
+  MUSE — Setup & Run Guide
+========================================
+
+A beautiful Spotify client that runs in your terminal.
+Requires: macOS, Bun, and a Spotify Premium account.
+
+----------------------------------------
+  ONE-TIME SETUP
+----------------------------------------
+
+1. Open Terminal and go to the project:
+
+       cd ~/Desktop/mp3
+
+2. Install dependencies (only needed once):
+
+       bun install
+
+2b. (Recommended) Play audio in the terminal itself — no
+    Spotify app needed. Install librespot once:
+
+       brew install librespot
+
+    MUSE auto-launches it as a Spotify Connect device
+    named "MUSE" and plays through your Mac directly.
+    (Requires Spotify Premium. Skip this and MUSE will
+     just control your other Spotify devices instead.)
+
+3. Add the redirect URI in your Spotify dashboard:
+
+       - Go to  https://developer.spotify.com/dashboard
+       - Open your app  ->  Settings  ->  Edit
+       - Under "Redirect URIs" add EXACTLY:
+
+             http://127.0.0.1:8888/callback
+
+       - IMPORTANT: use  127.0.0.1  (the numbers).
+         Do NOT type the word "localhost" — Spotify
+         rejects that, but accepts 127.0.0.1.
+       - Click Add, then scroll down and click SAVE.
+
+4b. Add your Client ID:
+
+       cp .env.example .env
+       # then edit .env and set:
+       #   MUSE_CLIENT_ID=your_client_id_here
+
+    (Or skip this — MUSE will prompt for the ID on
+     first run and remember it.)
+
+----------------------------------------
+  RUN IT
+----------------------------------------
+
+4. Start MUSE:
+
+       bun start
+
+5. Press  ENTER  to connect.
+   Your browser opens Spotify -> click "Agree".
+   The page shows "Connected" and MUSE shows: Connected
+
+6. Play a song on Spotify (phone, desktop, or web).
+   MUSE will show it spinning with live progress.
+
+----------------------------------------
+  CONTROLS
+----------------------------------------
+
+   enter        connect (first run)
+   space / p    play / pause
+   n  or  ->    next track
+   b  or  <-    previous track
+   s            shuffle on/off
+   r            repeat off / all / one
+   q            quit
+
+----------------------------------------
+  TROUBLESHOOTING
+----------------------------------------
+
+- "INVALID_CLIENT" / "client_id: Invalid" in browser
+      The redirect URI isn't saved on the app. Re-check
+      step 3: it must be EXACTLY  http://127.0.0.1:8888/callback
+      and you must click SAVE.
+
+- "Authorization timed out"
+      Something else may be using port 8888. Close it
+      and retry, or tell me to change the port.
+
+- "No active device"
+      If you installed librespot (step 2b), MUSE plays
+      locally — just wait a few seconds after connecting
+      for the "🔊 playing here" status. Otherwise, open
+      Spotify somewhere and press play once.
+
+- Local playback (librespot) not working
+      Make sure it's installed:  which librespot
+      Install with:  brew install librespot
+      Needs Spotify Premium. The header shows
+      "🔊 playing here" when the terminal is the device.
+
+- Start over / log out:
+      rm ~/.config/muse/tokens.json
+
+========================================
