@@ -27,6 +27,8 @@ Built with TypeScript + [Bun](https://bun.sh) + [Ink](https://github.com/vadimde
 - ⏭ **Queue** view of what's coming up
 - 🔊 **Local playback** — the terminal becomes a Spotify Connect device via
   [librespot](https://github.com/librespot-org/librespot); no Spotify app needed
+- 🎤 **Hands-free voice control** — *"muse, play …"* via offline
+  [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (free, no API keys)
 - 🎛 **Device switching**, volume, shuffle, repeat, a visualizer, and 8 themes
 - 🔐 **PKCE OAuth** (no client secret) with encrypted, machine-local token storage
 
@@ -71,7 +73,7 @@ The `muse` command automatically:
 | `space`   | play / pause      |     | `/`   | search           |
 | `n` / `b` | next / previous   |     | `l`   | library          |
 | `+` / `-` | volume            |     | `d`   | switch device    |
-| `s`       | shuffle           |     | `r`   | repeat           |
+| `s`       | shuffle           |     | `v`   | voice control 🎤 |
 | `j` / `k` | move in lists     |     | `q`   | quit             |
 
 ## Development
