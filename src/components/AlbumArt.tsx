@@ -2,25 +2,42 @@ import React, { useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
 import { useTheme } from '../hooks/useTheme.ts';
 import { useAlbumArt } from '../hooks/useAlbumArt.ts';
+import { useAlbumImage } from '../hooks/useAlbumImage.ts';
+import { supportsInlineImages } from '../utils/terminalCaps.ts';
+import { buildItermImage } from '../utils/itermImage.ts';
 
 /**
- * Album art. Renders the real cover as truecolor half-blocks when available,
- * falling back to a spinning vinyl disc while it loads or if there's no image.
+ * Album art. On terminals with inline-image support (iTerm2 / WezTerm) it
+ * renders the exact cover; otherwise truecolor half-blocks; and a spinning
+ * vinyl disc while either loads or when there's no image.
  */
 
 const SPIN = ['◐', '◓', '◑', '◒'] as const;
+const INLINE = supportsInlineImages();
 
 interface AlbumArtProps {
   artUrl: string | null;
   playing: boolean;
   width: number;
+  rows: number;
 }
 
-export function AlbumArt({ artUrl, playing, width }: AlbumArtProps): React.JSX.Element {
+export function AlbumArt({ artUrl, playing, width, rows }: AlbumArtProps): React.JSX.Element {
   const theme = useTheme();
-  const lines = useAlbumArt(artUrl, width);
+  const base64 = useAlbumImage(artUrl, INLINE);
+  const lines = useAlbumArt(INLINE ? null : artUrl, width); // skip ANSI work on image terminals
 
-  if (lines && lines.length > 0) {
+  // Real inline image (exact cover) — iTerm2 / WezTerm.
+  if (INLINE && base64) {
+    return (
+      <Box width={width} height={rows}>
+        <Text>{buildItermImage(base64, width, rows)}</Text>
+      </Box>
+    );
+  }
+
+  // Truecolor half-block fallback.
+  if (!INLINE && lines && lines.length > 0) {
     return (
       <Box flexDirection="column" borderStyle={theme.border} borderColor={theme.colors.muted}>
         {lines.map((line, i) => (

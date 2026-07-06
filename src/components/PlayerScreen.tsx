@@ -97,7 +97,7 @@ export function PlayerScreen(): React.JSX.Element {
       {/* Upper: now playing */}
       <Box height={upperHeight}>
         <Box width={artCol} flexDirection="column">
-          <AlbumArt artUrl={track.artUrl} playing={track.isPlaying} width={artWidth} />
+          <AlbumArt artUrl={track.artUrl} playing={track.isPlaying} width={artWidth} rows={artRows} />
         </Box>
 
         <Box flexDirection="column" width={infoWidth} marginLeft={2}>

@@ -15,11 +15,13 @@ import { logDebug } from '../utils/logger.ts';
 const BIN_DIRS = ['/opt/homebrew/bin', '/usr/local/bin'];
 const MODELS_DIR = join(CONFIG_DIR, 'models');
 
-// Prefer the most accurate model that's installed (small.en is the sweet spot
-// of accuracy vs. speed; base/tiny are fallbacks, medium is higher accuracy).
+// Prefer the most accurate installed model. large-v3-turbo handles accents far
+// better than the .en models; medium/small/base/tiny are lighter fallbacks.
+// Override with MUSE_WHISPER_MODEL (a model name or an absolute path).
 const MODEL_PREFERENCE = [
-  'ggml-small.en.bin',
+  'ggml-large-v3-turbo.bin',
   'ggml-medium.en.bin',
+  'ggml-small.en.bin',
   'ggml-base.en.bin',
   'ggml-tiny.en.bin',
 ];
@@ -39,6 +41,12 @@ function resolveBin(name: string): string | null {
 }
 
 function resolveModel(): string | null {
+  const override = process.env.MUSE_WHISPER_MODEL;
+  if (override) {
+    if (existsSync(override)) return override;
+    const named = join(MODELS_DIR, override.endsWith('.bin') ? override : `ggml-${override}.bin`);
+    if (existsSync(named)) return named;
+  }
   for (const name of MODEL_PREFERENCE) {
     const p = join(MODELS_DIR, name);
     if (existsSync(p)) return p;
@@ -101,7 +109,9 @@ function capture(rec: string): Promise<string> {
     recProc = spawn(
       rec,
       ['-q', '-c', '1', '-r', '16000', '-b', '16', wav,
-        'silence', '1', '0.1', '2%', '1', '1.2', '2%', 'trim', '0', '8'],
+        // record on speech, stop after 1.5s silence, cap 10s, then normalize
+        // volume so a quiet mic still transcribes well.
+        'silence', '1', '0.1', '2%', '1', '1.5', '2%', 'trim', '0', '10', 'gain', '-n', '-1'],
       { stdio: 'ignore' },
     );
     recProc.on('exit', () => {
@@ -125,7 +135,7 @@ function transcribe(whisper: string, wav: string): Promise<string> {
     let out = '';
     const p = spawn(
       whisper,
-      ['-m', model, '-f', wav, '-nt', '-np', '-t', '4', '-bs', '5', '--prompt', PROMPT],
+      ['-m', model, '-f', wav, '-nt', '-np', '-t', '4', '-bs', '5', '-l', 'en', '--prompt', PROMPT],
       { stdio: ['ignore', 'pipe', 'ignore'] },
     );
     p.stdout.on('data', (d) => (out += d.toString()));

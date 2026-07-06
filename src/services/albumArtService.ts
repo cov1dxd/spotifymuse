@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import sharp from 'sharp';
 import { ALBUM_ART_CACHE } from '../config/paths.ts';
 import { imageToAnsi } from '../utils/imageToAnsi.ts';
 
@@ -11,6 +12,7 @@ import { imageToAnsi } from '../utils/imageToAnsi.ts';
  */
 
 const ansiMemo = new Map<string, string[]>();
+const base64Memo = new Map<string, string>();
 
 async function fetchArtBuffer(url: string): Promise<Buffer | null> {
   const key = createHash('sha1').update(url).digest('hex');
@@ -46,6 +48,27 @@ export async function getAnsiArt(url: string, width: number): Promise<string[] |
     const lines = await imageToAnsi(buf, width);
     ansiMemo.set(memoKey, lines);
     return lines;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns the cover as a base64 PNG (for terminals with real inline images).
+ * Resized to a crisp square; the terminal scales it into its cell box.
+ */
+export async function getArtImageBase64(url: string): Promise<string | null> {
+  const memoized = base64Memo.get(url);
+  if (memoized) return memoized;
+
+  const buf = await fetchArtBuffer(url);
+  if (!buf) return null;
+
+  try {
+    const png = await sharp(buf).resize(400, 400, { fit: 'cover' }).png().toBuffer();
+    const b64 = png.toString('base64');
+    base64Memo.set(url, b64);
+    return b64;
   } catch {
     return null;
   }

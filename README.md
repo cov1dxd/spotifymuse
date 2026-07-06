@@ -20,7 +20,8 @@ Built with TypeScript + [Bun](https://bun.sh) + [Ink](https://github.com/vadimde
 
 ## Features
 
-- 🎨 **Real album art** rendered as truecolor half-blocks (cached)
+- 🎨 **Album art** — the **exact cover** on iTerm2 / WezTerm (inline images),
+  or truecolor half-blocks elsewhere (cached)
 - 🎤 **Synced lyrics** (via [LRCLIB](https://lrclib.net)) that follow playback
 - 🔎 **Search** tracks and play instantly
 - 📚 **Library** — browse and play your playlists
