@@ -17,6 +17,7 @@ export function SearchOverlay(): React.JSX.Element {
   const { rows } = useDimensions();
 
   const mode = useSearchStore((s) => s.mode);
+  const recommend = useSearchStore((s) => s.recommend);
   const query = useSearchStore((s) => s.query);
   const results = useSearchStore((s) => s.results);
   const status = useSearchStore((s) => s.status);
@@ -62,12 +63,12 @@ export function SearchOverlay(): React.JSX.Element {
       paddingX={1}
     >
       <Text color={theme.colors.primary} bold>
-        SEARCH{' '}
-        <Text color={theme.colors.muted}>· tracks</Text>
+        {recommend ? 'RECOMMENDED' : 'SEARCH'}{' '}
+        <Text color={theme.colors.muted}>· {recommend ? 'your top tracks' : 'tracks'}</Text>
       </Text>
 
-      {/* Query line */}
-      <Box marginTop={1}>
+      {/* Query line — hidden in recommend mode (there's no query) */}
+      <Box marginTop={1} display={recommend && mode === 'browsing' ? 'none' : 'flex'}>
         <Text color={theme.colors.accent}>❯ </Text>
         {mode === 'typing' ? (
           <TextInput
@@ -88,7 +89,9 @@ export function SearchOverlay(): React.JSX.Element {
             <Spinner type="dots" /> searching…
           </Text>
         ) : status === 'empty' ? (
-          <Text color={theme.colors.muted}>No results for “{query}”.</Text>
+          <Text color={theme.colors.muted}>
+            {recommend ? 'No top tracks yet — listen a while, then check back.' : `No results for “${query}”.`}
+          </Text>
         ) : results.length === 0 ? (
           <Text color={theme.colors.muted}>Type a query and press enter.</Text>
         ) : (
@@ -121,7 +124,9 @@ export function SearchOverlay(): React.JSX.Element {
       <Text color={theme.colors.muted}>
         {mode === 'typing'
           ? 'enter search · ↓ results · esc close'
-          : 'j/k move · enter play · i edit · esc close'}
+          : recommend
+            ? 'j/k move · enter play · / search · esc close'
+            : 'j/k move · enter play · i edit · esc close'}
       </Text>
     </Box>
   );

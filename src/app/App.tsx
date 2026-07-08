@@ -42,6 +42,7 @@ const PLAYER_HINTS: KeyHint[] = [
   { key: '+/-', label: 'volume' },
   { key: '/', label: 'search' },
   { key: 'l', label: 'library' },
+  { key: 't', label: 'top picks' },
   { key: 'v', label: 'voice' },
   { key: 'd', label: 'device' },
   { key: 'q', label: 'quit' },
@@ -84,6 +85,7 @@ export function App(): React.JSX.Element {
 
   const searchOpen = useSearchStore((s) => s.open);
   const openSearch = useSearchStore((s) => s.openSearch);
+  const openRecommendations = useSearchStore((s) => s.openRecommendations);
   const deviceOpen = useDeviceStore((s) => s.open);
   const openDevices = useDeviceStore((s) => s.openDevices);
   const libraryOpen = useLibraryStore((s) => s.open);
@@ -136,6 +138,10 @@ export function App(): React.JSX.Element {
       }
       if (input === 'l') {
         void openLibrary();
+        return;
+      }
+      if (input === 't') {
+        void openRecommendations();
         return;
       }
       if (input === 'd') {

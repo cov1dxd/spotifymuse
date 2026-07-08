@@ -14,6 +14,7 @@ export type SearchMode = 'typing' | 'browsing';
 interface SearchState {
   open: boolean;
   mode: SearchMode;
+  recommend: boolean;
   query: string;
   results: TrackResult[];
   status: SearchStatus;
@@ -21,6 +22,7 @@ interface SearchState {
   notice: string | null;
 
   openSearch: () => void;
+  openRecommendations: () => Promise<void>;
   closeSearch: () => void;
   setQuery: (q: string) => void;
   setMode: (m: SearchMode) => void;
@@ -32,16 +34,29 @@ interface SearchState {
 export const useSearchStore = create<SearchState>((set, get) => ({
   open: false,
   mode: 'typing',
+  recommend: false,
   query: '',
   results: [],
   status: 'idle',
   selected: 0,
   notice: null,
 
-  openSearch: () => set({ open: true, mode: 'typing', notice: null }),
-  closeSearch: () => set({ open: false, mode: 'typing', notice: null }),
+  openSearch: () => set({ open: true, mode: 'typing', recommend: false, notice: null }),
+
+  openRecommendations: async () => {
+    set({ open: true, recommend: true, status: 'searching', results: [], selected: 0, notice: null });
+    try {
+      const results = await search.topTracks();
+      set({ results, status: results.length ? 'done' : 'empty', selected: 0, mode: 'browsing' });
+    } catch (err) {
+      set({ status: 'empty', results: [], mode: 'browsing', notice: err instanceof Error ? err.message : 'Failed to load recommendations' });
+    }
+  },
+
+  closeSearch: () => set({ open: false, mode: 'typing', recommend: false, notice: null }),
   setQuery: (query) => set({ query }),
-  setMode: (mode) => set({ mode }),
+  // Typing means a fresh search, not recommendations — drop the recommend header.
+  setMode: (mode) => set({ mode, ...(mode === 'typing' ? { recommend: false } : {}) }),
 
   runSearch: async () => {
     const query = get().query.trim();

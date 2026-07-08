@@ -11,6 +11,10 @@ dist/
 .env
 .env.local
 
+# local agent/project notes — keep out of the repo
+CLAUDE.md
+.claude/
+
 # muse runtime data
 ~/.config/muse/
 .muse-cache/

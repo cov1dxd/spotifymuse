@@ -1,5 +1,6 @@
 import { useAuthStore } from '../state/authStore.ts';
 import { searchTracks as apiSearch } from '../spotify/searchApi.ts';
+import { getTopTracks } from '../spotify/topApi.ts';
 import { playTrackInAlbum } from './playbackControls.ts';
 import { logDebug } from '../utils/logger.ts';
 import type { TrackResult } from '../spotify/searchTypes.ts';
@@ -18,6 +19,18 @@ export async function searchTracks(query: string): Promise<TrackResult[]> {
   } catch (err) {
     logDebug(`search failed: ${err instanceof Error ? err.message : String(err)}`);
     throw err; // surfaced to the search page so the real reason is visible
+  }
+}
+
+/** Your top tracks — the personalized "recommendations" list. */
+export async function topTracks(): Promise<TrackResult[]> {
+  const t = await token();
+  if (!t) throw new Error('Not connected — reconnect and try again.');
+  try {
+    return await getTopTracks(t);
+  } catch (err) {
+    logDebug(`top tracks failed: ${err instanceof Error ? err.message : String(err)}`);
+    throw err;
   }
 }
 
