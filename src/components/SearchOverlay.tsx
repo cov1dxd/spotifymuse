@@ -20,6 +20,7 @@ export function SearchOverlay(): React.JSX.Element {
   const recommend = useSearchStore((s) => s.recommend);
   const query = useSearchStore((s) => s.query);
   const results = useSearchStore((s) => s.results);
+  const recPlaylists = useSearchStore((s) => s.recPlaylists);
   const status = useSearchStore((s) => s.status);
   const selected = useSearchStore((s) => s.selected);
   const notice = useSearchStore((s) => s.notice);
@@ -47,12 +48,20 @@ export function SearchOverlay(): React.JSX.Element {
     else if (input === 'i' || input === '/') setMode('typing');
   });
 
+  // Recommend mode shows playlists first, then tracks, as one selectable list.
+  const items = recommend
+    ? [
+        ...recPlaylists.map((p) => ({ kind: 'playlist' as const, playlist: p })),
+        ...results.map((t) => ({ kind: 'track' as const, track: t })),
+      ]
+    : results.map((t) => ({ kind: 'track' as const, track: t }));
+
   const visibleRows = Math.max(3, rows - 10);
   const start = Math.min(
     Math.max(0, selected - Math.floor(visibleRows / 2)),
-    Math.max(0, results.length - visibleRows),
+    Math.max(0, items.length - visibleRows),
   );
-  const window = results.slice(start, start + visibleRows);
+  const window = items.slice(start, start + visibleRows);
 
   return (
     <Box
@@ -64,7 +73,7 @@ export function SearchOverlay(): React.JSX.Element {
     >
       <Text color={theme.colors.primary} bold>
         {recommend ? 'RECOMMENDED' : 'SEARCH'}{' '}
-        <Text color={theme.colors.muted}>· {recommend ? 'your top tracks' : 'tracks'}</Text>
+        <Text color={theme.colors.muted}>· {recommend ? 'playlists & top tracks' : 'tracks'}</Text>
       </Text>
 
       {/* Query line — hidden in recommend mode (there's no query) */}
@@ -90,17 +99,36 @@ export function SearchOverlay(): React.JSX.Element {
           </Text>
         ) : status === 'empty' ? (
           <Text color={theme.colors.muted}>
-            {recommend ? 'No top tracks yet — listen a while, then check back.' : `No results for “${query}”.`}
+            {recommend ? 'Nothing to recommend yet — listen a while, then check back.' : `No results for “${query}”.`}
           </Text>
-        ) : results.length === 0 ? (
+        ) : items.length === 0 ? (
           <Text color={theme.colors.muted}>Type a query and press enter.</Text>
         ) : (
-          window.map((track, i) => {
+          window.map((row, i) => {
             const index = start + i;
             const isSel = index === selected;
+            if (row.kind === 'playlist') {
+              const p = row.playlist;
+              return (
+                <Text
+                  key={`pl-${p.id}`}
+                  color={isSel ? theme.colors.accent : theme.colors.foreground}
+                  bold={isSel}
+                  wrap="truncate-end"
+                >
+                  {isSel ? '❯ ' : '  '}
+                  ▸ {truncate(p.name, 36)}
+                  <Text color={theme.colors.muted}>
+                    {' · playlist'}
+                    {p.owner ? ` · ${truncate(p.owner, 16)}` : ''}
+                  </Text>
+                </Text>
+              );
+            }
+            const track = row.track;
             return (
               <Text
-                key={track.id}
+                key={`tr-${track.id}`}
                 color={isSel ? theme.colors.accent : theme.colors.foreground}
                 bold={isSel}
                 wrap="truncate-end"

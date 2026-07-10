@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { spotifyGet } from './client.ts';
 import { normalizeSearch, searchResponseSchema, type TrackResult } from './searchTypes.ts';
 
@@ -16,4 +17,17 @@ export async function getTopTracks(token: string): Promise<TrackResult[]> {
   if (raw === null) return [];
   const parsed = searchResponseSchema.safeParse({ tracks: raw });
   return parsed.success ? normalizeSearch(parsed.data) : [];
+}
+
+const topArtistsSchema = z.object({
+  items: z.array(z.object({ name: z.string() }).nullable()).default([]),
+});
+
+/** Your top artists' names — seeds for recommended-playlist search. */
+export async function getTopArtists(token: string): Promise<string[]> {
+  const raw = await spotifyGet<unknown>(token, '/me/top/artists');
+  if (raw === null) return [];
+  const parsed = topArtistsSchema.safeParse(raw);
+  if (!parsed.success) return [];
+  return parsed.data.items.flatMap((a) => (a ? [a.name] : []));
 }
